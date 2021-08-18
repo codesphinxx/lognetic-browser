@@ -1,0 +1,1 @@
+export {default as lognetic} from './log.client';
