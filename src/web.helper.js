@@ -5,24 +5,6 @@ export default class WebHelper
     throw new Error('This is a static class');
   }
 
-  static getPlugins() 
-  {
-    let pluginsList = "";
-
-    for (let i = 0; i < navigator.plugins.length; i++) 
-    {
-      if (i == navigator.plugins.length - 1) 
-      {
-        pluginsList += navigator.plugins[i].name;
-      }
-      else 
-      {
-        pluginsList += navigator.plugins[i].name + ", ";
-      }
-    }
-    return pluginsList;
-  }
-
   static isLocalStorage() 
   {
     try 
