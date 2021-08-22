@@ -1,6 +1,6 @@
 {
   "name": "lognetic-browser",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The logging component of the Playnix JavaScript SDKs for browsers",
   "license": "BSD-3-Clause",
   "author": {
