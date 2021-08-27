@@ -12,6 +12,21 @@ let plugins = [
   new webpack.LoaderOptionsPlugin({ options: {} })
 ];
 
+let minifier = {
+  minimize: true,
+  minimizer: [
+    new TerserPlugin({
+      extractComments: false,
+      terserOptions: {
+        mangle: true,
+        format: {
+          comments: false
+        }
+      },
+    }),
+  ],
+};
+
 module.exports = (env) => ({
   entry: __dirname + '/src/index.js',
   mode: env.mode,
@@ -32,20 +47,7 @@ module.exports = (env) => ({
       }
     ]
   },
-  optimization: {
-      minimize: true,
-      minimizer: [
-        new TerserPlugin({
-          extractComments: false,
-          terserOptions: {
-            mangle: true,
-            format: {
-              comments: false
-            }
-          },
-        }),
-      ],
-  },
+  optimization: env.mode === 'production' ? minifier : {},
   resolve: {
     modules: ['./node_modules', path.resolve('./src')],
     extensions: ['.json', '.js']
