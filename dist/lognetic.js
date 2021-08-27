@@ -515,7 +515,7 @@ class BaseLogClient
         }
         if (this._breadcrumbs.length != 0)
         {
-            data.breadcrumbs = JSON.parse(this._breadcrumbs);
+            data.breadcrumbs = this._breadcrumbs;
         }
         if (this._xhttp)
         {    
