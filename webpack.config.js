@@ -3,6 +3,15 @@ const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 
+let pkg = JSON.parse(fs.readFileSync(__dirname + '/package.json').toString());
+
+let plugins = [
+  new webpack.DefinePlugin({
+    __VERSION__: JSON.stringify(pkg.version)
+  }),
+  new webpack.LoaderOptionsPlugin({ options: {} })
+];
+
 module.exports = (env) => ({
   entry: __dirname + '/src/index.js',
   mode: env.mode,
@@ -41,5 +50,5 @@ module.exports = (env) => ({
     modules: ['./node_modules', path.resolve('./src')],
     extensions: ['.json', '.js']
   },
-  plugins: []
+  plugins: plugins
 });
