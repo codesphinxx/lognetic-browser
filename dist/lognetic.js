@@ -400,9 +400,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _options__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./options */ "./node_modules/playnix-core/node_modules/playnix-types/src/options.js");
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config */ "./node_modules/playnix-core/node_modules/playnix-types/src/config.js");
 /* harmony import */ var _exception__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./exception */ "./node_modules/playnix-core/node_modules/playnix-types/src/exception.js");
-/* harmony import */ var _response__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./response */ "./node_modules/playnix-core/node_modules/playnix-types/src/response.js");
-/* harmony import */ var _message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./message */ "./node_modules/playnix-core/node_modules/playnix-types/src/message.js");
-
+/* harmony import */ var _message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./message */ "./node_modules/playnix-core/node_modules/playnix-types/src/message.js");
 
 
 
@@ -447,6 +445,11 @@ class BaseLogClient
              * @type {String}
              */
             this._client_id = null;
+            /**
+             * @private
+             * @type {{category:String, message:String, timestamp:Date, data:Object}[]}
+             */
+            this._breadcrumbs = [];
 
             BaseLogClient.singleton = this;
         }
@@ -461,15 +464,16 @@ class BaseLogClient
     {
         if (this._xhttp instanceof XMLHttpRequest)
         {
-            if (this._xhttp.readyState === XMLHttpRequest.DONE && this._xhttp.status === 200)
-            {
-                let response = Object.assign(new _response__WEBPACK_IMPORTED_MODULE_3__.default, JSON.parse(this._xhttp.responseText));
-            }
-            else
+            if (this._xhttp.readyState === XMLHttpRequest.DONE && this._xhttp.status != 200 && this.options.debug && !this.options.console.log)
             {
                 console.log(this._xhttp.responseText);
             }
         }
+    }
+
+    static get CONSTANTS()
+    {
+        return _config__WEBPACK_IMPORTED_MODULE_1__.default;
     }
 
     /**
@@ -509,18 +513,22 @@ class BaseLogClient
         {
             data.environment = this.options.environment;
         }
+        if (this._breadcrumbs.length != 0)
+        {
+            data.breadcrumbs = JSON.parse(this._breadcrumbs);
+        }
         if (this._xhttp)
         {    
             let path = '';
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.ERROR && this.options.paths.error)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.ERROR && this.options.paths.error)
             {
                 path = `/${this.options.paths.error}`;
             } 
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.EVENT && this.options.paths.event)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.EVENT && this.options.paths.event)
             {
                 path = `/${this.options.paths.event}`;
             }
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.MESSAGE && this.options.paths.message)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.MESSAGE && this.options.paths.message)
             {
                 path = `/${this.options.paths.message}`;
             }
@@ -531,6 +539,44 @@ class BaseLogClient
             }        
             this._xhttp.send(JSON.stringify(data));
         }        
+    }
+
+    /**
+     * @protected
+     * @param {Object} breadcrumb
+     * @param {String} breadcrumb.category
+     * @param {String} breadcrumb.message
+     * @param {Date} breadcrumb.timestamp
+     * @param {Object} breadcrumb.data
+     */
+    _extractBreadcrumb(breadcrumb)
+    {
+        if (!breadcrumb) return;
+
+        let values = {};
+
+        if (typeof breadcrumb.category == 'string')
+        {
+            values.category = breadcrumb.category;
+        }
+        if (typeof breadcrumb.message == 'string')
+        {
+            values.message = breadcrumb.message;
+        }
+        if (breadcrumb.timestamp instanceof Date)
+        {
+            values.timestamp = breadcrumb.timestamp.getTime();
+        }
+        else if (typeof breadcrumb.timestamp == 'number' || typeof breadcrumb.timestamp == 'bigint')
+        {
+            values.timestamp = breadcrumb.timestamp;
+        }
+        if (breadcrumb.data)
+        {
+            values.data = JSON.parse(breadcrumb.data);
+        }
+        
+        return values;
     }
     
     /**
@@ -584,6 +630,32 @@ class BaseLogClient
     }
 
     /**
+    * @public
+    * @description Sets breadcrumbs that will be attached to any outgoing message
+    * @param {Object} breadcrumb Breadcrumb data
+    */
+    addBreadcrumb(breadcrumb) 
+    {
+        let entry = this._extractBreadcrumb(breadcrumb);
+        if (entry)
+        {
+            this._breadcrumbs.push(entry);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+    * @public
+    * @description Clear breadcrumbs
+    */
+    clearBreadcrumbs() 
+    {
+        this._breadcrumbs.length = 0;
+    }
+
+    /**
      * @public
      * @description Generate and set a unique client Id
      */
@@ -601,7 +673,7 @@ class BaseLogClient
     * @description Captures an event message
     * @param {String} id event id
     * @param {String} message event message
-    * @param {String} category event action
+    * @param {String} category event category
     */
     writeEvent(id, message, category) {}
 
@@ -654,7 +726,7 @@ const LoggingConfig = Object.freeze({
         WARN: 'warn',
         ERROR: 'error'
     },
-    LOG_TRIGGER: {
+    LOG_ACTION: {
         MESSAGE: 'message',
         ERROR: 'error',
         EVENT: 'event'
@@ -691,7 +763,7 @@ class Event extends _message__WEBPACK_IMPORTED_MODULE_1__.default
     constructor(id, message, category)
     {
         super(message);
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.EVENT;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.EVENT;
         /**
          * @type {String}
          */
@@ -729,7 +801,7 @@ class Exception extends _message__WEBPACK_IMPORTED_MODULE_1__.default
     constructor(error, handled = true)
     {
         super(error.message);
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.ERROR;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.ERROR;
                 
         /**
          * @type {Boolean}
@@ -841,7 +913,7 @@ class Message
         /**
          * @type {String}
          */
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.MESSAGE;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.MESSAGE;
         /**
          * @type {String}
          */
@@ -858,6 +930,10 @@ class Message
          * @type {Object}
          */
         this.os = null;
+        /**
+         * @type {{category:String, message:String, timestamp:Date, data:Object}[]}
+         */
+        this.breadcrumbs = [];
         /**
          * @type {Number}
          */
@@ -894,10 +970,14 @@ class Message
          * @type {Object}
          */
         this.meta = {};
-        /**
-         * @type {String}
-         */
-        this.version = "0.0.5";
+    }
+
+    /**
+     * @type {string}
+     */
+    get version()
+    {
+        return "0.0.4";
     }
 }
 
@@ -1463,9 +1543,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _options__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./options */ "./node_modules/playnix-types/src/options.js");
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config */ "./node_modules/playnix-types/src/config.js");
 /* harmony import */ var _exception__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./exception */ "./node_modules/playnix-types/src/exception.js");
-/* harmony import */ var _response__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./response */ "./node_modules/playnix-types/src/response.js");
-/* harmony import */ var _message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./message */ "./node_modules/playnix-types/src/message.js");
-
+/* harmony import */ var _message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./message */ "./node_modules/playnix-types/src/message.js");
 
 
 
@@ -1510,6 +1588,11 @@ class BaseLogClient
              * @type {String}
              */
             this._client_id = null;
+            /**
+             * @private
+             * @type {{category:String, message:String, timestamp:Date, data:Object}[]}
+             */
+            this._breadcrumbs = [];
 
             BaseLogClient.singleton = this;
         }
@@ -1524,15 +1607,16 @@ class BaseLogClient
     {
         if (this._xhttp instanceof XMLHttpRequest)
         {
-            if (this._xhttp.readyState === XMLHttpRequest.DONE && this._xhttp.status === 200)
-            {
-                let response = Object.assign(new _response__WEBPACK_IMPORTED_MODULE_3__.default, JSON.parse(this._xhttp.responseText));
-            }
-            else if (this.options.debug && !this.options.console.log)
+            if (this._xhttp.readyState === XMLHttpRequest.DONE && this._xhttp.status != 200 && this.options.debug && !this.options.console.log)
             {
                 console.log(this._xhttp.responseText);
             }
         }
+    }
+
+    static get CONSTANTS()
+    {
+        return _config__WEBPACK_IMPORTED_MODULE_1__.default;
     }
 
     /**
@@ -1572,18 +1656,22 @@ class BaseLogClient
         {
             data.environment = this.options.environment;
         }
+        if (this._breadcrumbs.length != 0)
+        {
+            data.breadcrumbs = this._breadcrumbs;
+        }
         if (this._xhttp)
-        {    
+        {
             let path = '';
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.ERROR && this.options.paths.error)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.ERROR && this.options.paths.error)
             {
                 path = `/${this.options.paths.error}`;
             } 
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.EVENT && this.options.paths.event)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.EVENT && this.options.paths.event)
             {
                 path = `/${this.options.paths.event}`;
             }
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_TRIGGER.MESSAGE && this.options.paths.message)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.MESSAGE && this.options.paths.message)
             {
                 path = `/${this.options.paths.message}`;
             }
@@ -1594,6 +1682,44 @@ class BaseLogClient
             }        
             this._xhttp.send(JSON.stringify(data));
         }        
+    }
+
+    /**
+     * @protected
+     * @param {Object} breadcrumb
+     * @param {String} breadcrumb.category
+     * @param {String} breadcrumb.message
+     * @param {Date} breadcrumb.timestamp
+     * @param {Object} breadcrumb.data
+     */
+    _extractBreadcrumb(breadcrumb)
+    {
+        if (!breadcrumb) return;
+
+        let values = {};
+
+        if (typeof breadcrumb.category == 'string')
+        {
+            values.category = breadcrumb.category;
+        }
+        if (typeof breadcrumb.message == 'string')
+        {
+            values.message = breadcrumb.message;
+        }
+        if (breadcrumb.timestamp instanceof Date)
+        {
+            values.timestamp = breadcrumb.timestamp.getTime();
+        }
+        else if (typeof breadcrumb.timestamp == 'number' || typeof breadcrumb.timestamp == 'bigint')
+        {
+            values.timestamp = breadcrumb.timestamp;
+        }
+        if (breadcrumb.data)
+        {
+            values.data = JSON.parse(JSON.stringify(breadcrumb.data));
+        }
+        
+        return values;
     }
     
     /**
@@ -1647,6 +1773,36 @@ class BaseLogClient
     }
 
     /**
+    * @public
+    * @description Sets breadcrumbs that will be attached to any outgoing message
+    * @param {Object} breadcrumb Breadcrumb data
+     * @param {String} breadcrumb.category
+     * @param {String} breadcrumb.message
+     * @param {Date} breadcrumb.timestamp
+     * @param {Object} breadcrumb.data
+    */
+    addBreadcrumb(breadcrumb) 
+    {
+        let entry = this._extractBreadcrumb(breadcrumb);
+        if (entry)
+        {
+            this._breadcrumbs.push(entry);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+    * @public
+    * @description Clear breadcrumbs
+    */
+    clearBreadcrumbs() 
+    {
+        this._breadcrumbs.length = 0;
+    }
+
+    /**
      * @public
      * @description Generate and set a unique client Id
      */
@@ -1664,7 +1820,7 @@ class BaseLogClient
     * @description Captures an event message
     * @param {String} id event id
     * @param {String} message event message
-    * @param {String} category event action
+    * @param {String} category event category
     */
     writeEvent(id, message, category) {}
 
@@ -1717,7 +1873,7 @@ const LoggingConfig = Object.freeze({
         WARN: 'warn',
         ERROR: 'error'
     },
-    LOG_TRIGGER: {
+    LOG_ACTION: {
         MESSAGE: 'message',
         ERROR: 'error',
         EVENT: 'event'
@@ -1754,7 +1910,7 @@ class Event extends _message__WEBPACK_IMPORTED_MODULE_1__.default
     constructor(id, message, category)
     {
         super(message);
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.EVENT;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.EVENT;
         /**
          * @type {String}
          */
@@ -1792,7 +1948,7 @@ class Exception extends _message__WEBPACK_IMPORTED_MODULE_1__.default
     constructor(error, handled = true)
     {
         super(error.message);
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.ERROR;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.ERROR;
                 
         /**
          * @type {Boolean}
@@ -1904,7 +2060,7 @@ class Message
         /**
          * @type {String}
          */
-        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_TRIGGER.MESSAGE;
+        this.name = _config__WEBPACK_IMPORTED_MODULE_0__.default.LOG_ACTION.MESSAGE;
         /**
          * @type {String}
          */
@@ -1921,6 +2077,10 @@ class Message
          * @type {Object}
          */
         this.os = null;
+        /**
+         * @type {{category:String, message:String, timestamp:Date, data:Object}[]}
+         */
+        this.breadcrumbs = [];
         /**
          * @type {Number}
          */
@@ -1957,10 +2117,14 @@ class Message
          * @type {Object}
          */
         this.meta = {};
-        /**
-         * @type {String}
-         */
-        this.version = "0.0.5";
+    }
+
+    /**
+     * @type {string}
+     */
+    get version()
+    {
+        return "0.0.4";
     }
 }
 

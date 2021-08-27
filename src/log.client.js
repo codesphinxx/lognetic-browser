@@ -17,7 +17,7 @@ class BrowserLogClient extends LogClient
     {
         this.registerDeviceInformer(BrowserInformer);
         super.init(key, options);
-            
+        
         window.onerror = this._onerror.bind(this);
 
         /**
