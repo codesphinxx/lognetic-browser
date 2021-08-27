@@ -3,22 +3,13 @@ const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 
-let pkg = JSON.parse(fs.readFileSync(__dirname + '/package.json').toString());
-
-let plugins = [
-  new webpack.DefinePlugin({
-    __VERSION__: JSON.stringify(pkg.version)
-  }),
-  new webpack.LoaderOptionsPlugin({ options: {} })
-];
-
-const config = {
+module.exports = (env) => ({
   entry: __dirname + '/src/index.js',
-  devtool:'source-map',
-  mode: "production",
+  mode: env.mode,
+  devtool: env.mode === 'production' ? false : 'source-map',
   output: {
     path: __dirname + '/dist',
-    filename: 'lognetic.min.js',
+    filename: env.mode === 'production' ? 'lognetic.min.js' : 'lognetic.js',
     library: {
       type: 'umd'
     }
@@ -38,7 +29,10 @@ const config = {
         new TerserPlugin({
           extractComments: false,
           terserOptions: {
-            mangle: true, 
+            mangle: true,
+            format: {
+              comments: false
+            }
           },
         }),
       ],
@@ -47,7 +41,5 @@ const config = {
     modules: ['./node_modules', path.resolve('./src')],
     extensions: ['.json', '.js']
   },
-  plugins: plugins
-};
-
-module.exports = config;
+  plugins: []
+});

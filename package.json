@@ -13,7 +13,7 @@
     "url": "git+https://github.com/codesphinxx/lognetic-browser.git"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack --env=mode=development && webpack --env=mode=production"
   },
   "dependencies": {
     "playnix-core": "^0.0.6",
