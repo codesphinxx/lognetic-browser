@@ -1438,7 +1438,7 @@ class Message
      */
     get version()
     {
-        return "0.0.4";
+        return "0.0.5";
     }
 }
 
