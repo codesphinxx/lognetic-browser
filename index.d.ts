@@ -42,10 +42,9 @@ declare module 'lognetic-browser/log.client' {
       /**
       * @public
       * @description Initializes playnix's logging client for browsers.
-      * @param {String} key
       * @param {PlaynixOptions} options
       */
-      public init(key: string, options: any): void;
+      public init(options: any): void;
       /**
        * @private
        */
@@ -70,9 +69,6 @@ declare module 'lognetic-browser/log.client' {
 
 }
 declare module 'lognetic-browser/murmurhash3' {
-  /**
-   * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
-   */
   /**
    * @param {String} key
    * @param {Number} seed

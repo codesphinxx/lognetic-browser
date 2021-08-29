@@ -118,10 +118,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var playnix_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! playnix-core */ "./node_modules/playnix-core/src/index.js");
-/* harmony import */ var _device_informer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./device.informer */ "./src/device.informer.js");
-/* harmony import */ var _murmurhash3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./murmurhash3 */ "./src/murmurhash3.js");
-/* harmony import */ var _web_helper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./web.helper */ "./src/web.helper.js");
-/* harmony import */ var playnix_types__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! playnix-types */ "./node_modules/playnix-types/src/index.js");
+/* harmony import */ var playnix_types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! playnix-types */ "./node_modules/playnix-types/src/index.js");
+/* harmony import */ var _device_informer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./device.informer */ "./src/device.informer.js");
+/* harmony import */ var _murmurhash3__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./murmurhash3 */ "./src/murmurhash3.js");
+/* harmony import */ var _web_helper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./web.helper */ "./src/web.helper.js");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -171,13 +171,12 @@ var BrowserLogClient = /*#__PURE__*/function (_LogClient) {
     /**
     * @public
     * @description Initializes playnix's logging client for browsers.
-    * @param {String} key
     * @param {PlaynixOptions} options
     */
-    function init(key, options) {
-      this.registerDeviceInformer(_device_informer__WEBPACK_IMPORTED_MODULE_1__.default);
+    function init(options) {
+      this.registerDeviceInformer(_device_informer__WEBPACK_IMPORTED_MODULE_2__.default);
 
-      _get(_getPrototypeOf(BrowserLogClient.prototype), "init", this).call(this, key, options);
+      _get(_getPrototypeOf(BrowserLogClient.prototype), "init", this).call(this, options);
 
       window.onerror = this._onerror.bind(this);
       /**
@@ -197,16 +196,16 @@ var BrowserLogClient = /*#__PURE__*/function (_LogClient) {
       var parser = this.deviceInformer.parser;
       var browserData = parser.getResult();
       var userAgent = browserData.ua;
-      var screenPrint = _web_helper__WEBPACK_IMPORTED_MODULE_3__.default.getScreenPrint();
-      var localStorage = _web_helper__WEBPACK_IMPORTED_MODULE_3__.default.isLocalStorage();
-      var sessionStorage = _web_helper__WEBPACK_IMPORTED_MODULE_3__.default.isSessionStorage();
-      var timeZone = _web_helper__WEBPACK_IMPORTED_MODULE_3__.default.getTimeZone();
+      var screenPrint = _web_helper__WEBPACK_IMPORTED_MODULE_4__.default.getScreenPrint();
+      var localStorage = _web_helper__WEBPACK_IMPORTED_MODULE_4__.default.isLocalStorage();
+      var sessionStorage = _web_helper__WEBPACK_IMPORTED_MODULE_4__.default.isSessionStorage();
+      var timeZone = _web_helper__WEBPACK_IMPORTED_MODULE_4__.default.getTimeZone();
       var language = navigator.language;
       var systemLanguage = navigator.systemLanguage;
       var cookies = navigator.cookieEnabled;
       var key = userAgent + bar + screenPrint + bar + localStorage + bar + sessionStorage + bar + timeZone + bar + language + bar + systemLanguage + bar + cookies;
       var seed = 256;
-      this._client_id = (0,_murmurhash3__WEBPACK_IMPORTED_MODULE_2__.default)(key, seed);
+      this._client_id = (0,_murmurhash3__WEBPACK_IMPORTED_MODULE_3__.default)(key, seed);
     }
     /**
      * @private
@@ -237,7 +236,7 @@ var BrowserLogClient = /*#__PURE__*/function (_LogClient) {
       this._console[action] = console[action];
 
       console[action] = function () {
-        if (action == playnix_types__WEBPACK_IMPORTED_MODULE_4__.LoggingConfig.LOG_TRIGGER.ERROR) {
+        if (action == playnix_types__WEBPACK_IMPORTED_MODULE_1__.LoggingConfig.LOG_TRIGGER.ERROR) {
           _this.writeException(_arguments);
         } else {
           _this.writeMessage(JSON.stringify(_arguments));
@@ -267,10 +266,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ murmurhash3_32_gc)
 /* harmony export */ });
-/**
- * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
- */
-
 /**
  * @param {String} key 
  * @param {Number} seed 
@@ -501,16 +496,11 @@ class LogClient extends playnix_types__WEBPACK_IMPORTED_MODULE_0__.BaseLogClient
     * @public
     * @description Initializes playnix's logging client.
     * @param {String} key
-    * @param {Object} options
-    * @param {Boolean} options.debug
-    * @param {String} options.uri
-    * @param {String} options.method
-    * @param {String} options.protocol
-    * @param {String} options.environment
+    * @param {PlaynixOptions} options
     */
-    init(key, options)
-    {
-        super.init(key, options);
+    init(options)
+    {        
+        super.init(options);
         this._xhttp = new XMLHttpRequest();
         this._xhttp.onreadystatechange = this._onreadystatechange.bind(this);
     }
@@ -638,11 +628,6 @@ class PlaynixBaseClient
              * @private
              * @type {String}
              */
-            this.game = null;
-            /**
-             * @private
-             * @type {String}
-             */
             this.token = null;
             /**
              * @private
@@ -667,26 +652,18 @@ class PlaynixBaseClient
     /**
     * @public
     * @description Initializes the playnix session.
-    * @param {String} key
-    * @param {Object} options
-    * @param {Boolean} options.debug
-    * @param {String} options.uri
-    * @param {String} options.method
-    * @param {String} options.protocol
-    * @param {String} options.environment
+    * @param {PlaynixOptions} options
     */
-    init(key, options)
+    init(options)
     {
-        this.game = key;
-        this._setup(key, options);
+        this._setup(options);
     }
 
     /**
      * @protected
-     * @param {String} key 
-     * @param {Object} options 
+     * @param {PlaynixOptions} options 
      */
-    _setup(key, options) {}
+    _setup(options) {}
 
     /**
      * @public
@@ -875,11 +852,6 @@ class BaseLogClient
             this.options = null;
             /**
              * @private
-             * @type {String}
-             */
-            this._app_key = null;
-            /**
-             * @private
              * @type {XMLHttpRequest}
              */
             this._xhttp = null;
@@ -962,9 +934,9 @@ class BaseLogClient
         {
             data.clientId = this._client_id;
         }
-        if (this._app_key)
+        if (this.options.appKey)
         {
-            data.secret = this._app_key;
+            data.secret = this.options.appKey;
         }
         if (this.options.environment)
         {
@@ -977,15 +949,15 @@ class BaseLogClient
         if (this._xhttp)
         {
             let path = '';
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.ERROR && this.options.paths.error)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.ERROR && this.options.paths && this.options.paths.error)
             {
                 path = `/${this.options.paths.error}`;
             } 
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.EVENT && this.options.paths.event)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.EVENT && this.options.paths && this.options.paths.event)
             {
                 path = `/${this.options.paths.event}`;
             }
-            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.MESSAGE && this.options.paths.message)
+            if (data.name == _config__WEBPACK_IMPORTED_MODULE_1__.default.LOG_ACTION.MESSAGE && this.options.paths && this.options.paths.message)
             {
                 path = `/${this.options.paths.message}`;
             }
@@ -1035,11 +1007,58 @@ class BaseLogClient
         
         return values;
     }
+
+    /**
+    * @protected
+    * @param {Object} options
+    */
+    _validateOptions(options)
+    {
+        if (options.appKey && typeof options.appKey != 'string')
+        {
+            throw new Error('InvalidArgument: [appKey] is expecting a string value');
+        }
+        if ((options.debug != null || options.debug != undefined) && typeof options.debug != 'boolean')
+        {
+            throw new Error('InvalidArgument: [debug] is expecting a string value');
+        }
+        if (options.uri && typeof options.uri != 'string')
+        {
+            throw new Error('InvalidArgument: [uri] is expecting a string value');
+        }
+        if (['POST','PUT','PATCH','DELETE'].indexOf(options.method) == -1)
+        {
+            throw new Error('InvalidArgument: Client submit method must either POST, PUT, PATCH or DELETE');
+        }
+        if (['http','https'].indexOf(options.protocol) == -1)
+        {
+            throw new Error('InvalidArgument: Client submit protocol must either HTTP or HTTPS');
+        }
+        if (options.environment && typeof options.environment != 'string')
+        {
+            throw new Error('InvalidArgument: [environment] is expecting a string value');
+        }
+        if (options.paths)
+        {
+            if (options.paths.message && typeof options.paths.message != 'string')
+            {
+                throw new Error('InvalidArgument: [paths.message] is expecting a string value');
+            }
+            if (options.paths.event && typeof options.paths.event != 'string')
+            {
+                throw new Error('InvalidArgument: [paths.event] is expecting a string value');
+            }        
+            if (options.paths.error && typeof options.paths.error != 'string')
+            {
+                throw new Error('InvalidArgument: [paths.error] is expecting a string value');
+            }
+        }        
+    }
     
     /**
     * @public
-    * @param {String} key - the client application api key
     * @param {Object} options
+    * @param {String} options.appKey
     * @param {Boolean} options.debug
     * @param {String} options.uri
     * @param {String} options.method
@@ -1054,18 +1073,13 @@ class BaseLogClient
     * @param {Boolean} options.console.warn
     * @param {Boolean} options.console.error
     */
-    init(key, options)
+    init(options)
     {      
-        options = options || {};   
-        if (!key)
-        {
-            throw new Error('InvalidArgument: Application client id cannot be null');
-        }
-        if (typeof key != 'string')
-        {
-            throw new Error('InvalidArgument: Client id is expecting a string value');
-        }
+        options = options || {};
         options = Object.assign(_options__WEBPACK_IMPORTED_MODULE_0__.default, options);
+        options.method = options.method.toUpperCase();
+        options.uri = options.uri.toLowerCase();
+
         if (options.uri.indexOf('https:')!=-1)
         {
             options.uri = options.uri.replace('https:', '');
@@ -1075,13 +1089,28 @@ class BaseLogClient
         {
             options.uri = options.uri.replace('http:', '');
             options.protocol = 'http';
-        } 
-        options.method = options.method.toUpperCase();
-        if (['POST','PUT','DELETE'].indexOf(options.method) == -1)
-        {
-            throw new Error('InvalidArgument: Client submit method must either POST, PUT or DELETE');
         }
-        this._app_key = key;
+        if (options.paths)
+        {
+            if (options.paths.message)
+            {
+                if (!options.paths.error) options.paths.error = options.paths.message;
+                if (!options.paths.event) options.paths.event = options.paths.message;
+            }
+            if (options.paths.event)
+            {
+                if (!options.paths.error) options.paths.error = options.paths.event;
+                if (!options.paths.message) options.paths.message = options.paths.event;
+            }        
+            if (options.paths.error)
+            {
+                if (!options.paths.event) options.paths.event = options.paths.error;
+                if (!options.paths.message) options.paths.message = options.paths.error;
+            }
+        }
+
+        this._validateOptions(options);
+        
         this.options = options;
         this.generateClientId();
     }
@@ -1090,10 +1119,10 @@ class BaseLogClient
     * @public
     * @description Sets breadcrumbs that will be attached to any outgoing message
     * @param {Object} breadcrumb Breadcrumb data
-     * @param {String} breadcrumb.category
-     * @param {String} breadcrumb.message
-     * @param {Date} breadcrumb.timestamp
-     * @param {Object} breadcrumb.data
+    * @param {String} breadcrumb.category
+    * @param {String} breadcrumb.message
+    * @param {Date} breadcrumb.timestamp
+    * @param {Object} breadcrumb.data
     */
     addBreadcrumb(breadcrumb) 
     {
@@ -1117,9 +1146,9 @@ class BaseLogClient
     }
 
     /**
-     * @public
-     * @description Generate and set a unique client Id
-     */
+    * @public
+    * @description Generate and set a unique client Id
+    */
     generateClientId() {}
 
     /**
@@ -1438,7 +1467,7 @@ class Message
      */
     get version()
     {
-        return "0.0.5";
+        return "0.0.6";
     }
 }
 
@@ -1464,6 +1493,10 @@ const PlaynixOptions = {
      * @default false
      */
     debug: false,
+    /**
+     * @type {String}
+     */
+     appKey: null,
     /**
      * @type {String}
      */

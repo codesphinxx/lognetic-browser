@@ -1,25 +1,22 @@
-
 import {LogClient} from 'playnix-core';
+import { PlaynixOptions, LoggingConfig } from 'playnix-types'
 import BrowserInformer from './device.informer';
 import murmurhash3_32_gc from './murmurhash3';
 import WebHelper from './web.helper';
-import { LoggingConfig, PlaynixOptions } from 'playnix-types';
 
 class BrowserLogClient extends LogClient
 {
     /**
     * @public
     * @description Initializes playnix's logging client for browsers.
-    * @param {String} key
     * @param {PlaynixOptions} options
     */
-    init(key, options)
-    {
+    init(options)
+    { 
         this.registerDeviceInformer(BrowserInformer);
-        super.init(key, options);
-        
+        super.init(options);
         window.onerror = this._onerror.bind(this);
-
+        
         /**
          * @private
          */

@@ -1,8 +1,4 @@
 /**
- * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
- */
-
-/**
  * @param {String} key 
  * @param {Number} seed 
  */
