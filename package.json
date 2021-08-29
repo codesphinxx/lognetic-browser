@@ -7,16 +7,17 @@
     "name": "Code Sphinx",
     "url": "https://twitter.com/codesphinx"
   },
-  "main": "./dist/lognetic.min.js",
+  "main": "./srcl/index.js",
+  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codesphinxx/lognetic-browser.git"
   },
   "scripts": {
-    "build": "webpack --env=mode=development && webpack --env=mode=production"
+    "build": "npm-dts generate && webpack --env=mode=development && webpack --env=mode=production"
   },
   "dependencies": {
-    "playnix-core": "^0.0.7",
+    "playnix-core": "^0.0.8",
     "playnix-types": "^0.1.0",
     "ua-parser-js": "^0.7.28"
   },
