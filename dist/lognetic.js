@@ -174,16 +174,36 @@ var BrowserLogClient = /*#__PURE__*/function (_LogClient) {
     * @param {PlaynixOptions} options
     */
     function init(options) {
+      /**
+       * @private
+       */
+      this._console = {};
       this.registerDeviceInformer(_device_informer__WEBPACK_IMPORTED_MODULE_2__.default);
 
       _get(_getPrototypeOf(BrowserLogClient.prototype), "init", this).call(this, options);
 
-      window.onerror = this._onerror.bind(this);
+      if (!this._initialized) //prevent multiple initialization
+        {
+          window.onerror = this._onerror.bind(this);
+
+          if (this.options.console.log) {
+            this._onconsole('log');
+          }
+
+          if (this.options.console.warn) {
+            this._onconsole('warn');
+          }
+
+          if (this.options.console.error) {
+            this._onconsole('error');
+          }
+        }
       /**
        * @private
        */
 
-      this._console = {};
+
+      this._initialized = true;
     }
   }, {
     key: "generateClientId",
@@ -230,19 +250,31 @@ var BrowserLogClient = /*#__PURE__*/function (_LogClient) {
   }, {
     key: "_onconsole",
     value: function _onconsole(action) {
-      var _arguments = arguments,
-          _this = this;
+      var _this = this;
 
       this._console[action] = console[action];
 
       console[action] = function () {
-        if (action == playnix_types__WEBPACK_IMPORTED_MODULE_1__.LoggingConfig.LOG_TRIGGER.ERROR) {
-          _this.writeException(_arguments);
-        } else {
-          _this.writeMessage(JSON.stringify(_arguments));
+        var value = '';
+
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
         }
 
-        _this._console[action].apply(console, _arguments);
+        for (var _i = 0, _args = args; _i < _args.length; _i++) {
+          var i = _args[_i];
+          value += JSON.stringify(i) + ' ';
+        }
+
+        value = playnix_core__WEBPACK_IMPORTED_MODULE_0__.Utils.replaceAll(value, '"', '');
+
+        if (action == playnix_types__WEBPACK_IMPORTED_MODULE_1__.LoggingConfig.LOG_ACTION.ERROR) {
+          _this.writeException(new Error(value));
+        } else {
+          _this.writeMessage(value);
+        }
+
+        _this._console[action].apply(console, args);
       };
     }
   }]);
@@ -439,11 +471,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "LogClient": () => (/* reexport safe */ _log_client__WEBPACK_IMPORTED_MODULE_0__.default),
 /* harmony export */   "DeviceInformer": () => (/* reexport safe */ _device_informer__WEBPACK_IMPORTED_MODULE_1__.default),
-/* harmony export */   "PlaynixBaseClient": () => (/* reexport safe */ _playnix_base__WEBPACK_IMPORTED_MODULE_2__.default)
+/* harmony export */   "PlaynixBaseClient": () => (/* reexport safe */ _playnix_base__WEBPACK_IMPORTED_MODULE_2__.default),
+/* harmony export */   "Utils": () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_3__.default)
 /* harmony export */ });
 /* harmony import */ var _log_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./log.client */ "./node_modules/playnix-core/src/log.client.js");
 /* harmony import */ var _device_informer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./device.informer */ "./node_modules/playnix-core/src/device.informer.js");
 /* harmony import */ var _playnix_base__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./playnix.base */ "./node_modules/playnix-core/src/playnix.base.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./node_modules/playnix-core/src/utils.js");
+
+
 
 
 
@@ -813,6 +849,24 @@ class Utils
 
         if (text.length === 0)
             return true;
+    }
+
+    /**
+     * @param {String} value 
+     */
+    static replaceAll(value, searchValue, replaceValue)
+    {
+        if (!value || !searchValue || replaceValue == null || replaceValue == undefined)
+            return value;
+
+        if (typeof value != 'string' || typeof searchValue != 'string' || typeof replaceValue != 'string')
+        {
+            return value;
+        }
+
+        searchValue = searchValue.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+        return value.replace(new RegExp(searchValue, 'gi'), replaceValue);
     }
 }
 

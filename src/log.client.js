@@ -1,4 +1,4 @@
-import {LogClient} from 'playnix-core';
+import {LogClient, Utils} from 'playnix-core';
 import { PlaynixOptions, LoggingConfig } from 'playnix-types'
 import BrowserInformer from './device.informer';
 import murmurhash3_32_gc from './murmurhash3';
@@ -12,15 +12,36 @@ class BrowserLogClient extends LogClient
     * @param {PlaynixOptions} options
     */
     init(options)
-    { 
-        this.registerDeviceInformer(BrowserInformer);
-        super.init(options);
-        window.onerror = this._onerror.bind(this);
-        
+    {        
         /**
          * @private
          */
         this._console = {};
+
+        this.registerDeviceInformer(BrowserInformer);
+        super.init(options);
+
+        if (!this._initialized) //prevent multiple initialization
+        {
+            window.onerror = this._onerror.bind(this);
+
+            if (this.options.console.log)
+            {
+                this._onconsole('log');
+            }
+            if (this.options.console.warn)
+            {
+                this._onconsole('warn');
+            }
+            if (this.options.console.error)
+            {
+                this._onconsole('error');
+            }
+        }
+        /**
+         * @private
+         */
+        this._initialized = true;
     }
 
     generateClientId() 
@@ -66,18 +87,24 @@ class BrowserLogClient extends LogClient
      */
     _onconsole(action)
     {        
-
         this._console[action] = console[action];
-        console[action] = () => {
-            if (action == LoggingConfig.LOG_TRIGGER.ERROR)
+        console[action] = (...args) => {
+            let value = '';
+            for (let i of args)
             {
-                this.writeException(arguments);
+                value += JSON.stringify(i) + ' '
+            }
+            value = Utils.replaceAll(value, '"', '');
+            
+            if (action == LoggingConfig.LOG_ACTION.ERROR)
+            {
+                this.writeException(new Error(value));
             }
             else
             {
-                this.writeMessage(JSON.stringify(arguments));
+                this.writeMessage(value);
             }
-            this._console[action].apply(console, arguments);
+            this._console[action].apply(console, args);
         };
     }
 }

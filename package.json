@@ -1,6 +1,6 @@
 {
   "name": "lognetic-browser",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "The logging component of the Playnix JavaScript SDKs for browsers",
   "license": "BSD-3-Clause",
   "author": {
@@ -18,7 +18,7 @@
     "build": "npm-dts generate && webpack --env=mode=development && webpack --env=mode=production"
   },
   "dependencies": {
-    "playnix-core": "^0.1.1",
+    "playnix-core": "^0.1.4",
     "playnix-types": "^0.1.1",
     "ua-parser-js": "^0.7.28"
   },

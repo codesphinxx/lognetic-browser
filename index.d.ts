@@ -49,6 +49,10 @@ declare module 'lognetic-browser/log.client' {
        * @private
        */
       private _console;
+      /**
+       * @private
+       */
+      private _initialized;
       generateClientId(): void;
       _client_id: number;
       /**
