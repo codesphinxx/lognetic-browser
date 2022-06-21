@@ -1,4 +1,4 @@
-import {DeviceInformer} from '../../playnix-core/src/index';
+import {DeviceInformer} from 'playnix-core';
 import UAParser from 'ua-parser-js';
 
 class BrowserInformer extends DeviceInformer
