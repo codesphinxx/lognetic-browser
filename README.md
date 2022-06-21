@@ -74,7 +74,7 @@ Specifies the relative path that exceptions are sent to.
 
 
 ### lognetic.writeException
-Sends a error exception.
+Sends a error exception.<br/>
 error (required): a JavaScript Error object <br/>
 data: additional data to send(must contains values of string, number, or boolean)
 ```js
@@ -83,7 +83,7 @@ lognetic.writeException(error, data);
 
 
 ### lognetic.writeMessage
-Sends a custom info-level message.
+Sends a custom info-level message.<br/>
 message (required): the custom message to log <br/>
 data: additional data to send(must contains values of string, number, or boolean)
 ```js
@@ -92,7 +92,7 @@ lognetic.writeMessage(message, data);
 
 
 ### lognetic.writeEvent
-Sends a custom info-level message.
+Sends a custom info-level message.<br/>
 id (required): event id <br/>
 message (required): the custom message to log <br/>
 category (option): event category<br/>
@@ -102,8 +102,8 @@ lognetic.writeEvent(id, message, category);
 
 
 ### lognetic.addBreadcrumb
-Adds a breadcrumb data object to trail sent with messages. 
-data (required): Breadcrumb object
+Adds a breadcrumb data object to trail sent with messages.<br/>
+data (required): Breadcrumb object<br/>
 data format `{ category: string, message: string, timestamp: date|number, data: object }`
 ```js
 lognetic.addBreadcrumb(data);
@@ -111,7 +111,7 @@ lognetic.addBreadcrumb(data);
 
 
 ### lognetic.setMetaContext
-Assigns custom meta data that will be sent along with each exception.
+Assigns custom meta data that will be sent along with each exception.<br/>
 data (required): custom meta data, can be user to store user details
 ```js
 lognetic.setMetaContext(data);
@@ -119,7 +119,7 @@ lognetic.setMetaContext(data);
 
 
 ### lognetic.setAppVersion
-Allows you to set your application version.
+Allows you to set your application version.<br/>
 version (required): application version as string
 ```js
 lognetic.setAppVersion(version);

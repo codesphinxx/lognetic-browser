@@ -1,5 +1,5 @@
-import {LogClient, Utils} from 'playnix-core';
-import { PlaynixOptions, LoggingConfig } from 'playnix-types'
+import {LogClient, Utils} from '../../playnix-core/src/index';
+import { PlaynixOptions, LoggingConfig } from '../../playnix-types/src/index';
 import BrowserInformer from './device.informer';
 import murmurhash3_32_gc from './murmurhash3';
 import WebHelper from './web.helper';
